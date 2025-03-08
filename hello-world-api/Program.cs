@@ -20,4 +20,9 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
 
+// Look for code similar to this which defines your API route configuration
+app.MapControllerRoute(
+    name: "default",
+    pattern: "api/{controller}/{action=Index}/{id?}");
+
 app.Run();
