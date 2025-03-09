@@ -1,25 +1,40 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.AspNetCore.Builder;
+using hello_world_api.Services;
 
-namespace hello_world_api
+var builder = WebApplication.CreateBuilder(args);
+
+// Add services to the container.
+builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
+// Register our JournalService
+builder.Services.AddSingleton<JournalService>();
+// Logging is already registered by default in .NET 6+
+
+var app = builder.Build();
+
+// Configure the HTTP request pipeline.
+if (app.Environment.IsDevelopment())
 {
-    public class Program
-    {
-        public static void Main(string[] args)
-        {
-            BuildWebHost(args).Run();
-        }
-
-        public static IWebHost BuildWebHost(string[] args) =>
-            WebHost.CreateDefaultBuilder(args)
-                .UseStartup<Startup>()
-                .Build();
-    }
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
+
+app.UseHttpsRedirection();
+app.UseAuthorization();
+app.MapControllers();
+
+// Make sure the App_Data directory exists
+var dataDir = builder.Configuration["JournalSettings:DataDirectory"] ?? "App_Data";
+if (!Directory.Exists(dataDir))
+{
+    Directory.CreateDirectory(dataDir);
+}
+
+// Look for code similar to this which defines your API route configuration
+app.MapControllerRoute(
+    name: "default",
+    pattern: "api/{controller}/{action=Index}/{id?}");
+
+app.Run();
